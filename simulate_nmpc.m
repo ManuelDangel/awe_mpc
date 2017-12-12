@@ -9,14 +9,14 @@ stepwise_init = 0;
 
 % Reference Circle
 % R=20;
-R = 25/180*pi;% Reference opening angle of the circle
+R = atan(90/220);%25/180*pi;% Reference opening angle of the circle
 
 % OnlineData (Parameters)
 %vt = 20;
-vw = -15;
-r = 50;
+vw = -5;
+r = 220;
 circle_azimut = -pi/2;
-circle_elevation = 40/180*pi;
+circle_elevation = 20/180*pi;
 if stepwise_init
     init = 0;
 else

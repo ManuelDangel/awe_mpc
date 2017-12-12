@@ -34,15 +34,15 @@ OnlineData vw r circle_azimut circle_elevation init
 %     ];
 
 % Parameters (aircraft)
-rho = 1.225;
-A = 0.39;
-cL = 0.826;
-cD = 0.0862+0.1;
-m = 2.65;
+% rho = 1.225;
+% A = 0.39;
+% cL = 0.826;
+% cD = 0.0862+0.1;
+m = 27.53%2.65;
 g = 9.81;
 
-clA = 0.5*rho*cL*A;
-cdA = 0.5*rho*cD*A;
+clA = 1%0.5*rho*cL*A;
+cdA = 0.09%0.5*rho*cD*A;
 
 % % on sphere, fixed radius, fixed velocity
 % f = dot([psi; theta; gamma; phi]) == ...
@@ -95,7 +95,7 @@ ocp.setModel(f);
 max_roll_angle = 70*pi/180;
 max_roll_rate  = max_roll_angle*2;
 max_theta      = 70*pi/180;
-min_theta      = 10*pi/180
+min_theta      = -70*pi/180
 ocp.subjectTo( -max_roll_angle <= phi   <= max_roll_angle ); % Bounds
 ocp.subjectTo( -max_roll_rate  <= dphi  <= max_roll_rate  ); % Bounds
 ocp.subjectTo(  min_theta      <= theta <= max_theta      ); % Bounds to prevent gimbal lock
@@ -145,5 +145,6 @@ if true
     
     cd export_awe_mpc
     make_acado_solver('../awe_MPCstep')
+    make_sfunction('../awe_sfunction')
     cd ..
 end
