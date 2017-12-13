@@ -1,6 +1,8 @@
 %% AWE NMPC SIMULATION
 
 % Simulation Setup
+clear functions  % Clears compiled functions like .mex
+% important to not get stuck in NaN's for consequtive script runs
 N=30;
 Ts=0.1;
 

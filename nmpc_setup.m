@@ -135,7 +135,7 @@ mpc.set( 'HOTSTART_QP',                 'NO'             	);
 % mpc.set( 'CG_HARDCODE_CONSTRAINT_VALUES','NO' 			);  % Default is yes
 mpc.set( 'SPARSE_QP_SOLUTION',          'FULL_CONDENSING'   );
 % mpc.set( 'CG_USE_OPENMP',             'YES' );  % Paralellization
-
+% mpc.set( 'GENERATE_SIMULINK_INTERFACE', 'YES' );
 
 %% Export MPC Solver
 
@@ -145,6 +145,6 @@ if true
     
     cd export_awe_mpc
     make_acado_solver('../awe_MPCstep')
-    make_sfunction('../awe_sfunction')
+    % make_sfunction('../awe_sfunction')
     cd ..
 end
