@@ -15,9 +15,9 @@ R = atan(90/220);%25/180*pi;% Reference opening angle of the circle
 
 % OnlineData (Parameters)
 %vt = 20;
-vw = -5;
+vw = 5;
 r = 220;
-circle_azimut = -pi/2;
+circle_azimut = 0;
 circle_elevation = 20/180*pi;
 if stepwise_init
     init = 0;
@@ -38,7 +38,7 @@ z_ref = r*sin(theta_ref);
 % Initial Positon
 % X0 = [psi theta gamma phi vt]
 % X0 = [-pi/2+0.3 ,R+circle_elevation+0.1 ,pi/4 ,0.0, 20 ];
-X0 = [-pi/2 ,R+circle_elevation ,-pi/2 ,0.0, 20 ];
+X0 = [circle_azimut ,R+circle_elevation ,-pi/2 ,0.0, 20 ];
 
 
 
@@ -155,6 +155,19 @@ for t=0:Ts:T_Simulation  % Simulation
     input.u(1:end-1,:) = output.u(2:end,:);
     input.u(end,:) = output.u(end,:);
     
+    if t==5
+        input.x0(3) = input.x0(3)+2*pi;
+    end
+    
+    % Wrap Heading Angle Horizon 
+if input.x0(3)-input.x(1,3) < -pi
+    input.x(:,3) = input.x(:,3) - 2*pi*ones(size(input.x(:,3)))
+end
+if input.x0(3)-input.x(1,3) > pi
+    input.x(:,3) = input.x(:,3) + 2*pi*ones(size(input.x(:,3)))
+end
+
+    
     plottingfun(output,x_ref,y_ref,z_ref,x_sphere,y_sphere,z_sphere,r,N);  % plot current trajectory
     
     % Logging
@@ -210,6 +223,7 @@ function plottingfun(output,x_ref,y_ref,z_ref,x_sphere,y_sphere,z_sphere,r,N)
     ylabel('y [m]')
     zlabel('z [m]')
     % axis([-1.5*R 1.5*R -1.5*R 1.5*R])
+    view(60,30)  % Azimut, Elevation of viewpoint
     
     figure(2)
     set(gcf, 'Position', [1 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);

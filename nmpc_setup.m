@@ -41,7 +41,7 @@ OnlineData vw r circle_azimut circle_elevation init
 m = 27.53%2.65;
 g = 9.81;
 
-clA = 1%0.5*rho*cL*A;
+clA = 1.3%0.5*rho*cL*A;
 cdA = 0.09%0.5*rho*cD*A;
 
 % % on sphere, fixed radius, fixed velocity
@@ -69,7 +69,7 @@ R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta
 %     -r*stheta*spsi*theta_dot - r*ctheta*cpsi*psi_dot; ...
 %     r*ctheta*theta_dot];
 
-vw_xyz = [0;vw;0];  % wind velocity in xyz coordinates
+vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
 
 vw_local = R_mat'*vw_xyz;
 v_local = [vt ; 0 ; 0] - vw_local;
@@ -92,7 +92,7 @@ f = dot([psi; theta; gamma; phi; vt]) == ...
 ocp.setModel(f);
 
 % Constraints
-max_roll_angle = 70*pi/180;
+max_roll_angle = 50*pi/180;
 max_roll_rate  = max_roll_angle*2;
 max_theta      = 70*pi/180;
 min_theta      = -70*pi/180
