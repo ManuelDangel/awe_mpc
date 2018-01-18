@@ -9,18 +9,20 @@ acadoSet('problemname', 'awe_mpc');
 
 %% Optimal Control Problem
 
-Ts = 0.1;  % Sampling Time
-N = 30;  % Horizon Length
+nmpc = nmpc_init();
+
+Ts = nmpc.Ts;  % Sampling Time
+N = nmpc.N;  % Horizon Length
 ocp = acado.OCP( 0.0, N*Ts, N );  % Setup Acado problem
 
 % DifferentialState x_pos y_pos psi phi
 % DifferentialState psi theta gamma phi
-DifferentialState psi theta gamma phi vt
+DifferentialState psi theta gamma phi vt phi_des
 
 Control dphi
 
 % OnlineData vt r circle_azimut circle_elevation init
-OnlineData vw r circle_azimut circle_elevation init
+OnlineData vw r circle_azimut circle_elevation m clA cdA init
 
 
 % Differential Equation
@@ -38,11 +40,11 @@ OnlineData vw r circle_azimut circle_elevation init
 % A = 0.39;
 % cL = 0.826;
 % cD = 0.0862+0.1;
-m = 27.53%2.65;
+% m = 27.53%2.65;
 g = 9.81;
 
-clA = 1.3%0.5*rho*cL*A;
-cdA = 0.09%0.5*rho*cD*A;
+% clA = 0.9%1.3%0.5*rho*cL*A;
+% cdA = 0.08%0.5*rho*cD*A;
 
 % % on sphere, fixed radius, fixed velocity
 % f = dot([psi; theta; gamma; phi]) == ...
@@ -75,18 +77,29 @@ vw_local = R_mat'*vw_xyz;
 v_local = [vt ; 0 ; 0] - vw_local;
 v = sqrt(v_local'*v_local);
 epsilon = asin(v_local(3)/v);
+beta = atan(v_local(2)/vt);
 % v_xyz = vt_xyz-vw_xyz;
 % v = sqrt(v_xyz'*v_xyz);
 % n = [cpsi*ctheta ; spsi*ctheta ; stheta];
 % epsilon = asin(v_xyz'*n/v)%v_xyz'*vt_xyz / (v*vt);
 
-% on sphere, fixed radius, velocity is a state
-f = dot([psi; theta; gamma; phi; vt]) == ...
+% % on sphere, fixed radius, velocity is a state, 3D wind
+% f = dot([psi; theta; gamma; phi; vt]) == ...
+%     [ vt/(r*ctheta)*sgamma; ...
+%       vt/r*cgamma; ...
+%       1/(vt)*(clA*v*v/m*sin(phi) + g*ctheta*sin(gamma)); ...
+%       dphi; ...
+%       v*v/m * (clA*sin(epsilon)*cos(phi) - cdA*cos(epsilon) ) - cos(gamma)*ctheta*g% + 5
+%     ];
+
+% on sphere, fixed radius, 3D wind velocity, path side slip
+f = dot([psi; theta; gamma; phi; vt ; phi_des]) == ...
     [ vt/(r*ctheta)*sgamma; ...
       vt/r*cgamma; ...
-      1/(vt)*(clA*v*v/m*sin(phi) + g*ctheta*sin(gamma)); ...
-      dphi; ...
-      v*v/m * (clA*sin(epsilon)*cos(phi) - cdA*cos(epsilon) ) - cos(gamma)*ctheta*g% + 5
+      1/(vt)*(clA*v*v/m*sin(phi)*cos(beta) + g*ctheta*sin(gamma)); ...
+      (phi_des*1.0-phi)*2.7; ...
+      v*v/m * (clA*(sin(epsilon)*cos(phi)*cos(beta) + sin(phi)*sin(beta)) - cdA*cos(epsilon) ) - cos(gamma)*ctheta*g; ...% + 5 
+      dphi
     ];
 
 ocp.setModel(f);
@@ -103,10 +116,11 @@ ocp.subjectTo(  10             <= vt    <= 200             ); % Bounds to preven
 
 
 % Cost Function
+force_limit = clA*(clA/cdA*vw)*(clA/cdA*vw);
 % state_output = [sqrt(x_pos*x_pos+y_pos*y_pos)];
 state_output = [...
     sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))*init...
-    cos(phi)*cos(theta)*cos(psi-circle_azimut)*clA*v*v...
+    (force_limit*2 - cos(phi)*cos(epsilon)*clA*v*v)/force_limit...
     ];
 control_output = [dphi];
 
