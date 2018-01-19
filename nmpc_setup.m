@@ -12,7 +12,7 @@ acadoSet('problemname', 'awe_mpc');
 nmpc = nmpc_init();
 
 Ts = nmpc.Ts;  % Sampling Time
-N = nmpc.N;  % Horizon Length
+N  = nmpc.N;   % Horizon Length
 ocp = acado.OCP( 0.0, N*Ts, N );  % Setup Acado problem
 
 % DifferentialState x_pos y_pos psi phi
@@ -22,7 +22,7 @@ DifferentialState psi theta gamma phi vt phi_des
 Control dphi
 
 % OnlineData vt r circle_azimut circle_elevation init
-OnlineData vw r circle_azimut circle_elevation m clA cdA init
+OnlineData vw r r_dot circle_azimut circle_elevation circle_angle m clA cdA init
 
 
 % Differential Equation
@@ -74,7 +74,7 @@ R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta
 vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
 
 vw_local = R_mat'*vw_xyz;
-v_local = [vt ; 0 ; 0] - vw_local;
+v_local = [vt ; 0 ; -r_dot] - vw_local;
 v = sqrt(v_local'*v_local);
 epsilon = asin(v_local(3)/v);
 beta = atan(v_local(2)/vt);
@@ -119,7 +119,7 @@ ocp.subjectTo(  10             <= vt    <= 200             ); % Bounds to preven
 force_limit = clA*(clA/cdA*vw)*(clA/cdA*vw);
 % state_output = [sqrt(x_pos*x_pos+y_pos*y_pos)];
 state_output = [...
-    sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))*init...
+    (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle)*init...
     (force_limit*2 - cos(phi)*cos(epsilon)*clA*v*v)/force_limit...
     ];
 control_output = [dphi];

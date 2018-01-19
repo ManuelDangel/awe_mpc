@@ -195,8 +195,8 @@ function plottingfun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
     % plots current trajectory
     
     % Data to draw reference circle
-    theta_ref = circle_elevation+circle_angle*sqrt(nmpc.p.r/r)*sin([0:0.01*pi:2*pi]);
-    psi_ref = circle_azimut+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
+    theta_ref = circle_elevation+circle_angle*sqrt*sin([0:0.01*pi:2*pi]);
+    psi_ref = circle_azimut+circle_angle*cos([0:0.01*pi:2*pi]);
 
     x_ref = r*cos(psi_ref).*cos(theta_ref);
     y_ref = r*sin(psi_ref).*cos(theta_ref);
