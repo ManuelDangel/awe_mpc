@@ -18,42 +18,17 @@ ocp = acado.OCP( 0.0, N*Ts, N );  % Setup Acado problem
 % DifferentialState x_pos y_pos psi phi
 % DifferentialState psi theta gamma phi
 DifferentialState psi theta gamma phi vt phi_des
-
+  
 Control dphi
 
 % OnlineData vt r circle_azimut circle_elevation init
-OnlineData vw r r_dot circle_azimut circle_elevation circle_angle m clA cdA init
+OnlineData vw r r_dot circle_azimut circle_elevation circle_angle m clA cdA weight_tracking weight_power
 
-
-% Differential Equation
-
-% 2d plane
-% f = dot([x_pos; y_pos; psi; phi]) == ...
-%     [ V*cos(psi); ...
-%       V*sin(psi); ...
-%       tan(phi)*9.81/V; ...
-%       dphi ...
-%     ];
 
 % Parameters (aircraft)
-% rho = 1.225;
-% A = 0.39;
-% cL = 0.826;
-% cD = 0.0862+0.1;
-% m = 27.53%2.65;
 g = 9.81;
 
-% clA = 0.9%1.3%0.5*rho*cL*A;
-% cdA = 0.08%0.5*rho*cD*A;
-
-% % on sphere, fixed radius, fixed velocity
-% f = dot([psi; theta; gamma; phi]) == ...
-%     [ vt/(r*cos(theta))*sin(gamma); ...
-%       vt/r*cos(gamma); ...
-%       1/(vt)*(clA*vt*vt/m*sin(phi) + g*cos(theta)*sin(gamma)); ...
-%       dphi ...
-%     ];
-
+% Intermediate States
 spsi   = sin(psi);
 cpsi   = cos(psi);
 stheta = sin(theta);
@@ -64,13 +39,6 @@ cgamma = cos(gamma);
 % Rotation Matrix from Sphere Local Plane body axis x',y',z' to x,y,z
 R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta 0 -stheta]*[cgamma -sgamma 0 ; sgamma cgamma 0 ; 0 0 1];
 
-%vt_xyz = R_mat*[vt ; 0 ; 0];
-
-% vt_xyz = [ ...  % velocity on sphere in xyz coordinates
-%     -r*stheta*cpsi*theta_dot - r*ctheta*spsi*psi_dot; ...
-%     -r*stheta*spsi*theta_dot - r*ctheta*cpsi*psi_dot; ...
-%     r*ctheta*theta_dot];
-
 vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
 
 vw_local = R_mat'*vw_xyz;
@@ -78,20 +46,8 @@ v_local = [vt ; 0 ; -r_dot] - vw_local;
 v = sqrt(v_local'*v_local);
 epsilon = asin(v_local(3)/v);
 beta = atan(v_local(2)/vt);
-% v_xyz = vt_xyz-vw_xyz;
-% v = sqrt(v_xyz'*v_xyz);
-% n = [cpsi*ctheta ; spsi*ctheta ; stheta];
-% epsilon = asin(v_xyz'*n/v)%v_xyz'*vt_xyz / (v*vt);
 
-% % on sphere, fixed radius, velocity is a state, 3D wind
-% f = dot([psi; theta; gamma; phi; vt]) == ...
-%     [ vt/(r*ctheta)*sgamma; ...
-%       vt/r*cgamma; ...
-%       1/(vt)*(clA*v*v/m*sin(phi) + g*ctheta*sin(gamma)); ...
-%       dphi; ...
-%       v*v/m * (clA*sin(epsilon)*cos(phi) - cdA*cos(epsilon) ) - cos(gamma)*ctheta*g% + 5
-%     ];
-
+% Differential Equation
 % on sphere, fixed radius, 3D wind velocity, path side slip
 f = dot([psi; theta; gamma; phi; vt ; phi_des]) == ...
     [ vt/(r*ctheta)*sgamma; ...
@@ -112,15 +68,15 @@ min_theta      = -70*pi/180
 ocp.subjectTo( -max_roll_angle <= phi   <= max_roll_angle ); % Bounds
 ocp.subjectTo( -max_roll_rate  <= dphi  <= max_roll_rate  ); % Bounds
 ocp.subjectTo(  min_theta      <= theta <= max_theta      ); % Bounds to prevent gimbal lock
-ocp.subjectTo(  10             <= vt    <= 200             ); % Bounds to prevent under/overspeed
+ocp.subjectTo(  10             <= vt    <= 200            ); % Bounds to prevent under/overspeed
 
 
 % Cost Function
-force_limit = clA*(clA/cdA*vw)*(clA/cdA*vw);
+force_limit = (clA/cdA*(vw-r_dot))^2;  % *clA is removed because its anyways normalized in the cost
 % state_output = [sqrt(x_pos*x_pos+y_pos*y_pos)];
 state_output = [...
-    (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle)*init...
-    (force_limit*2 - cos(phi)*cos(epsilon)*clA*v*v)/force_limit...
+    (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
+    (force_limit - cos(phi)*cos(epsilon)*v*v)/force_limit * weight_power...
     ];
 control_output = [dphi];
 

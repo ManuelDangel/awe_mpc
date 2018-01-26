@@ -69,19 +69,20 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     OnlineData m; 
     OnlineData clA; 
     OnlineData cdA; 
-    OnlineData init; 
+    OnlineData weight_tracking; 
+    OnlineData weight_power; 
     BMatrix acadodata_M1;
     acadodata_M1.read( "awe_mpc_data_acadodata_M1.txt" );
     Function acadodata_f2;
-    acadodata_f2 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*init;
-    acadodata_f2 << (2.00000000000000000000e+00/cdA/cdA*clA*clA*clA*vw*vw-clA*cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi)*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot))))*cdA*cdA/clA/clA/clA/vw/vw;
+    acadodata_f2 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*weight_tracking;
+    acadodata_f2 << (-cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi)*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))+pow((-r_dot+vw)/cdA*clA,2.00000000000000000000e+00))/pow((-r_dot+vw)/cdA*clA,2.00000000000000000000e+00)*weight_power;
     acadodata_f2 << dphi;
     BMatrix acadodata_M2;
     acadodata_M2.read( "awe_mpc_data_acadodata_M2.txt" );
     Function acadodata_f3;
-    acadodata_f3 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*init;
-    acadodata_f3 << (2.00000000000000000000e+00/cdA/cdA*clA*clA*clA*vw*vw-clA*cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi)*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot))))*cdA*cdA/clA/clA/clA/vw/vw;
-    OCP ocp1(0, 3, 30);
+    acadodata_f3 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*weight_tracking;
+    acadodata_f3 << (-cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi)*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))*sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))+pow((-r_dot+vw)/cdA*clA,2.00000000000000000000e+00))/pow((-r_dot+vw)/cdA*clA,2.00000000000000000000e+00)*weight_power;
+    OCP ocp1(0, 10, 100);
     ocp1.minimizeLSQ(acadodata_M1, acadodata_f2);
     ocp1.minimizeLSQEndTerm(acadodata_M2, acadodata_f3);
     ocp1.subjectTo((-8.72664625997164766780e-01) <= phi <= 8.72664625997164766780e-01);
@@ -101,7 +102,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 
     ocp1.setNU( 1 );
     ocp1.setNP( 0 );
-    ocp1.setNOD( 10 );
+    ocp1.setNOD( 11 );
     OCPexport ExportModule1( ocp1 );
     ExportModule1.set( GENERATE_MATLAB_INTERFACE, 1 );
     uint options_flag;
@@ -115,7 +116,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     if(options_flag != 0) mexErrMsgTxt("ACADO export failed when setting the following option: DYNAMIC_SENSITIVITY");
     options_flag = ExportModule1.set( LINEAR_ALGEBRA_SOLVER, GAUSS_LU );
     if(options_flag != 0) mexErrMsgTxt("ACADO export failed when setting the following option: LINEAR_ALGEBRA_SOLVER");
-    options_flag = ExportModule1.set( NUM_INTEGRATOR_STEPS, 30 );
+    options_flag = ExportModule1.set( NUM_INTEGRATOR_STEPS, 100 );
     if(options_flag != 0) mexErrMsgTxt("ACADO export failed when setting the following option: NUM_INTEGRATOR_STEPS");
     options_flag = ExportModule1.set( QP_SOLVER, QP_QPOASES );
     if(options_flag != 0) mexErrMsgTxt("ACADO export failed when setting the following option: QP_SOLVER");
