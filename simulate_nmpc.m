@@ -8,7 +8,7 @@ nmpc = nmpc_init();
 N=nmpc.N;
 Ts=nmpc.Ts;
 
-T_Simulation  = 2;
+T_Simulation  = 20;
 stepwise_init = 1;
 
 % OnlineData (Parameters)
@@ -71,10 +71,11 @@ Yref = ones(N,1)*[0,0];
 
 input.y = [Yref, Uref];
 input.yN = [0,0];
+input.yN = [0,0,0];
 
 input.W = diag([100 0 1]);
 input.WN = diag([100 0]);
-
+input.WN = diag([100 0 0]);
 
 % % Change last state costs to track trajectory well:
 % input.od(end-6:end-1,5)=10;
@@ -140,7 +141,13 @@ end
 %% Run Simulation
 
 % % Cost Weighting for Power optimization
-input.W = diag([100 10 1]);
+input.W = diag([100 20 1]);
+input.WN = diag([100 0 20]);
+% input.od(end-4:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,5,1).*[2 4 6 8 10]';
+% input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1).*[1 2 3 4 5 6 7 8 9 10]';
+input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*5
+% input.od(1:10,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*0
+% input.od(end-9:end,nmpc.p.index.weight_power)       = repmat(0,10,1);
 
 % Declare Logging Variables
 delta_opt = [];
@@ -149,6 +156,21 @@ cost = [];
 cputime=[];
 for t=0:Ts:T_Simulation  % Simulation
     
+    % Set the power cost only for 1 full circle and not for more
+    for i=nmpc.N+1:-1:1
+        if input.x(i,nmpc.x.index.gamma) > input.x0(nmpc.x.index.gamma)+2*pi || ...
+                input.x(i,nmpc.x.index.gamma) < input.x0(nmpc.x.index.gamma)-2*pi
+            input.od(i,nmpc.p.index.weight_power)       = 0;
+        elseif i = nmpc.N+1
+            break
+        else
+            input.od(i,nmpc.p.index.weight_power)     = 0;%input.x(i,nmpc.x.index.gamma)
+            input.od(1:i-1,nmpc.p.index.weight_power) = repmat(nmpc.p.weight_power,i-1,1);
+            break
+        end
+    end
+    
+    
     tic
     output = awe_MPCstep(input); % Solve NMPC
     toc
@@ -156,7 +178,7 @@ for t=0:Ts:T_Simulation  % Simulation
     % Logging
     cputime = [cputime,output.info.cpuTime];
     delta_opt(end+1,:,:) = input.x-output.x;
-    cost(end+1,:) = [CalculateCost(output,input,nmpc), output.info.objValue];
+    % cost(end+1,:) = [CalculateCost(output,input,nmpc), output.info.objValue];
     
     output.info
     
@@ -201,12 +223,12 @@ end
 % xlabel('Deviation from initial guess [rad]')
 % ylabel('Horizon Points')
 
-figure(6)  % Plot Costs at each Timestep
-plot(repmat([0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts]',1,size(cost,2)),cost)
-legend('Tracking Cost','Power Cost','Control Cost','Total Cost')
-xlabel('time [s]')
-ylabel('Least Squares Objective Cost [-]')
-title('Objective Cost over Time')
+% figure(6)  % Plot Costs at each Timestep
+% plot(repmat([0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts]',1,size(cost,2)),cost)
+% legend('Tracking Cost','Power Cost','Control Cost','Total Cost')
+% xlabel('time [s]')
+% ylabel('Least Squares Objective Cost [-]')
+% title('Objective Cost over Time')
 
 disp('------------------------------------')
 disp(['Mean Computation Time: ',num2str(mean(cputime))])

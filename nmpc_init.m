@@ -3,7 +3,7 @@ function nmpc = nmpc_init()
 
 % global nmpc  % nmpc is made global for use in simulation
 
-nmpc.N  = 100;        % Horizon Length
+nmpc.N  = 80;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time
 
 nmpc.x.n = 6;        % State size
@@ -42,7 +42,7 @@ nmpc.p.r                        = 220;
 nmpc.p.r_dot                    = 10*0.23;
 nmpc.p.circle_azimut            = 0;
 nmpc.p.circle_elevation         = 30/180*pi;
-nmpc.p.circle_angle             = atan(60/220);%atan(85/220);
+nmpc.p.circle_angle             = atan(75/220);%atan(85/220);
 nmpc.p.m                        = 27.53;
 nmpc.p.clA                      = 0.9;
 nmpc.p.cdA                      = 0.07;

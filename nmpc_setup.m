@@ -72,21 +72,26 @@ ocp.subjectTo(  10             <= vt    <= 200            ); % Bounds to prevent
 
 
 % Cost Function
-force_limit = (clA/cdA*(vw-r_dot))^2;  % *clA is removed because its anyways normalized in the cost
-% state_output = [sqrt(x_pos*x_pos+y_pos*y_pos)];
+% force_limit = (clA/cdA*(vw-r_dot))^2;  % *clA is removed because its anyways normalized in the cost
+power_optimum    = clA * (clA/cdA*(vw*2/3))^2*vw/3;
+power_actual     = (clA*cos(phi)*cos(epsilon) + cdA*sin(epsilon))*v^2*r_dot
+power_potential  = m*g*vt*cos(gamma)*cos(theta)
+energy_optimum   = m*g*r + 0.5*m*clA/cdA*(vw)^2
+energy_potential = m*g*r*sin(theta) + 0.5*m*vt^2
 state_output = [...
     (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
-    (force_limit - cos(phi)*cos(epsilon)*v*v)/force_limit * weight_power...
+    sqrt((10*power_optimum - ( power_actual  + 0.0 * power_potential ))/power_optimum ) * weight_power...
     ];
 control_output = [dphi];
+end_output = [sqrt( (10*energy_optimum - 1.0*energy_potential)/power_optimum) * weight_power ];
 
 Q_mat = diag([1 0 1]);
 Q = acado.BMatrix(Q_mat);
 ocp.minimizeLSQ( Q, [state_output,control_output] );
 
-QN_mat = diag([1 0]);
+QN_mat = diag([1 0 0]);
 QN = acado.BMatrix(QN_mat);
-ocp.minimizeLSQEndTerm( QN, state_output );
+ocp.minimizeLSQEndTerm( QN, [state_output end_output] );
 
 % Setup Solver
 mpc = acado.OCPexport(ocp)
