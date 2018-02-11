@@ -7,7 +7,7 @@ nmpc.N  = 80;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time
 
 nmpc.x.n = 6;        % State size
-nmpc.u.n = 1;        % Input size
+nmpc.u.n = 3;        % Input size
 nmpc.p.n = 11;       % Parameter size
 
 
@@ -20,8 +20,9 @@ nmpc.x.index.vt     = 5;  % Tangential Path Velocity
 nmpc.x.index.phi_des= 6;  % Desired (commanded) Roll Angle
 
 % Index of control inputs
-nmpc.u.index.dphi   = 1;  % Roll Rate
-
+nmpc.u.index.dphi        = 1;  % Roll Rate
+nmpc.u.index.phi_slack   = 2;  % Slack on Roll Constraint
+nmpc.u.index.theta_slack = 3;  % Slack on Theta Constraint
 
 % Index of parameters
 nmpc.p.index.vw                 = 1;  % Wind Velocity

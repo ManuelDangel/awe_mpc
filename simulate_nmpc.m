@@ -8,7 +8,7 @@ nmpc = nmpc_init();
 N=nmpc.N;
 Ts=nmpc.Ts;
 
-T_Simulation  = 20;
+T_Simulation  = 10;
 stepwise_init = 1;
 
 % OnlineData (Parameters)
@@ -60,7 +60,8 @@ input.od(:,nmpc.p.index.m)                  = repmat(nmpc.p.m,N+1,1);
 input.od(:,nmpc.p.index.clA)                = repmat(nmpc.p.clA,N+1,1);
 input.od(:,nmpc.p.index.cdA)                = repmat(nmpc.p.cdA,N+1,1);
 input.od(:,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,N+1,1);
-input.od(end-4:end,nmpc.p.index.weight_tracking)    = input.od(end-4:end,nmpc.p.index.weight_tracking).*[2 4 6 8 10]';
+% input.od(end-4:end,nmpc.p.index.weight_tracking)    = input.od(end-4:end,nmpc.p.index.weight_tracking).*[2 4 6 8 10]';
+input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*5
 input.od(:,nmpc.p.index.weight_power)       = repmat(nmpc.p.weight_power,N+1,1);
 
 
@@ -73,7 +74,7 @@ input.y = [Yref, Uref];
 input.yN = [0,0];
 input.yN = [0,0,0];
 
-input.W = diag([100 0 1]);
+input.W = diag([100 0 1 100 1]);
 input.WN = diag([100 0]);
 input.WN = diag([100 0 0]);
 
@@ -110,7 +111,8 @@ for i=1:N+20
     init_step = 5;
     if stepwise_init
         if i==1
-            input.od(:,nmpc.p.index.weight_tracking)    = repmat(0,N+1,1);
+            input.od(:,nmpc.p.index.weight_tracking)           = repmat(0,N+1,1);
+            input.od(1:init_step,nmpc.p.index.weight_tracking) = repmat(nmpc.p.weight_tracking,init_step,1);
         end
         input.od(min(i*init_step+1,N+1):min((i+1)*init_step,N+1),nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,min((i+1)*init_step,N+1)-min(i*init_step+1,N+1)+1,1);
     end
@@ -141,7 +143,7 @@ end
 %% Run Simulation
 
 % % Cost Weighting for Power optimization
-input.W = diag([100 20 1]);
+input.W = diag([100 20 1 100 200]);
 input.WN = diag([100 0 20]);
 % input.od(end-4:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,5,1).*[2 4 6 8 10]';
 % input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1).*[1 2 3 4 5 6 7 8 9 10]';
@@ -157,18 +159,18 @@ cputime=[];
 for t=0:Ts:T_Simulation  % Simulation
     
     % Set the power cost only for 1 full circle and not for more
-    for i=nmpc.N+1:-1:1
-        if input.x(i,nmpc.x.index.gamma) > input.x0(nmpc.x.index.gamma)+2*pi || ...
-                input.x(i,nmpc.x.index.gamma) < input.x0(nmpc.x.index.gamma)-2*pi
-            input.od(i,nmpc.p.index.weight_power)       = 0;
-        elseif i = nmpc.N+1
-            break
-        else
-            input.od(i,nmpc.p.index.weight_power)     = 0;%input.x(i,nmpc.x.index.gamma)
-            input.od(1:i-1,nmpc.p.index.weight_power) = repmat(nmpc.p.weight_power,i-1,1);
-            break
-        end
-    end
+%     for i=nmpc.N+1:-1:1
+%         if input.x(i,nmpc.x.index.gamma) > input.x0(nmpc.x.index.gamma)+2*pi || ...
+%                 input.x(i,nmpc.x.index.gamma) < input.x0(nmpc.x.index.gamma)-2*pi
+%             input.od(i,nmpc.p.index.weight_power)       = 0;
+%         elseif i == nmpc.N+1
+%             break
+%         else
+%             input.od(i,nmpc.p.index.weight_power)     = 0;%input.x(i,nmpc.x.index.gamma)
+%             input.od(1:i-1,nmpc.p.index.weight_power) = repmat(nmpc.p.weight_power,i-1,1);
+%             break
+%         end
+%     end
     
     
     tic
@@ -178,7 +180,7 @@ for t=0:Ts:T_Simulation  % Simulation
     % Logging
     cputime = [cputime,output.info.cpuTime];
     delta_opt(end+1,:,:) = input.x-output.x;
-    % cost(end+1,:) = [CalculateCost(output,input,nmpc), output.info.objValue];
+    cost(end+1,:) = [CalculateCost(output,input,nmpc), output.info.objValue];
     
     output.info
     
@@ -211,24 +213,54 @@ end
     %pause(Ts-toc)
 end
 
+
+
 %% Plot Final Data
+if false
+    figure(4)  % Plot Solver CPU Time
+    histogram(cputime)
+end
 
-% figure(4)  % Plot Solver CPU Time
-% histogram(cputime)
-% 
-% figure(5)  % Plot Solver Prediction error
-% % boxplot(sqrt(delta_opt(10:end,:,1).^2+delta_opt(10:end,:,2).^2))
-% boxplot(sqrt(delta_opt(10:end,1:end-1,1).^2+delta_opt(10:end,1:end-1,2).^2))
-% grid on
-% xlabel('Deviation from initial guess [rad]')
-% ylabel('Horizon Points')
+if false
+    figure(5)  % Plot Solver Prediction Variation
+    set(gcf, 'Position',get(0,'Screensize'));
+    % screensize=get(0,'Screensize');
+    % set(gcf, 'Position', [screensize(3)*0.5 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
+    % boxplot(sqrt(delta_opt(10:end,:,1).^2+delta_opt(10:end,:,2).^2))
+    subplot(2,2,1)
+    boxplot(sqrt(delta_opt(10:end,1:end-1,1).^2+delta_opt(10:end,1:end-1,2).^2))
+    grid on
+    title('Change in Prediction from initial Guess - Position')
+    ylabel('Absolute change in Prediction of Angular Position [rad]')
+    xlabel('Prediction Horizon')
+    subplot(2,2,2)
+    boxplot(delta_opt(10:end,1:end-1,5))
+    grid on
+    title('Change in Prediction from initial Guess - Path Speed')
+    ylabel('Change in Prediction of Path Velocity [m/s]')
+    xlabel('Prediction Horizon')
+    subplot(2,2,3)
+    boxplot(delta_opt(10:end,1:end-1,3))
+    grid on
+    title('Change in Prediction from initial Guess - Path Heading')
+    ylabel('Change in Prediction of Path Heading [rad]')
+    xlabel('Prediction Horizon')
+    subplot(2,2,4)
+    boxplot(delta_opt(10:end,1:end-1,4))
+    grid on
+    title('Change in Prediction from initial Guess - Roll Angle')
+    ylabel('Change in Prediction of Roll Angle [rad]')
+    xlabel('Prediction Horizon')
+end
 
-% figure(6)  % Plot Costs at each Timestep
-% plot(repmat([0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts]',1,size(cost,2)),cost)
-% legend('Tracking Cost','Power Cost','Control Cost','Total Cost')
-% xlabel('time [s]')
-% ylabel('Least Squares Objective Cost [-]')
-% title('Objective Cost over Time')
+if false
+    figure(6)  % Plot Costs at each Timestep
+    plot(repmat([0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts]',1,size(cost,2)),cost)
+    legend('Tracking Cost','Power Cost','Control Cost','Total Cost')
+    xlabel('time [s]')
+    ylabel('Least Squares Objective Cost [-]')
+    title('Objective Cost over Time')
+end
 
 disp('------------------------------------')
 disp(['Mean Computation Time: ',num2str(mean(cputime))])
@@ -236,96 +268,14 @@ disp(['Max  Computation Time: ',num2str(max(cputime))])
 disp(['Min  Computation Time: ',num2str(min(cputime))])
 disp('------------------------------------')
 
-
-function step_cost = CalculateCost(output,input,nmpc)
-%     state_output = [...
-%     (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
-%     (force_limit*2 - cos(phi)*cos(epsilon)*clA*v*v)/force_limit * weight_power...
-%     ];
-%     control_output = [dphi];
-
-    stage_cost = zeros(nmpc.N+1,length(input.W));
-    for i=1:nmpc.N+1
-        % Intermediate States
-        psi   = output.x(i,nmpc.x.index.psi);
-        theta = output.x(i,nmpc.x.index.theta);
-        phi   = output.x(i,nmpc.x.index.phi);
-        
-        circle_azimut    = input.od(i,nmpc.p.index.circle_azimut);
-        circle_elevation = input.od(i,nmpc.p.index.circle_elevation);
-        circle_angle     = input.od(i,nmpc.p.index.circle_angle);
-        weight_tracking  = input.od(i,nmpc.p.index.weight_tracking);
-        weight_power     = input.od(i,nmpc.p.index.weight_power);
-        clA              = input.od(i,nmpc.p.index.clA);
-        cdA              = input.od(i,nmpc.p.index.cdA);
-        vw               = input.od(i,nmpc.p.index.vw);
-        r_dot            = input.od(i,nmpc.p.index.r_dot);
-        
-        spsi   = sin(output.x(i,nmpc.x.index.psi));
-        cpsi   = cos(output.x(i,nmpc.x.index.psi));
-        stheta = sin(output.x(i,nmpc.x.index.theta));
-        ctheta = cos(output.x(i,nmpc.x.index.theta));
-        sgamma = sin(output.x(i,nmpc.x.index.gamma));
-        cgamma = cos(output.x(i,nmpc.x.index.gamma));
-
-        % Rotation Matrix from Sphere Local Plane body axis x',y',z' to x,y,z
-        R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta 0 -stheta]*[cgamma -sgamma 0 ; sgamma cgamma 0 ; 0 0 1];
-
-        vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
-
-        vw_local = R_mat'*vw_xyz;
-        v_local = [output.x(i,nmpc.x.index.vt) ; 0 ; -nmpc.p.r_dot] - vw_local;
-        v = sqrt(v_local'*v_local);
-        epsilon = asin(v_local(3)/v);
-        % beta = atan(v_local(2)/vt);
-        force_limit = clA*(clA/cdA*(vw-r_dot))^2;
-
-        state_output = [...
-        (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
-        (force_limit - cos(phi)*cos(epsilon)*clA*v*v)/force_limit * weight_power...
-        ];
-        % state_output
-        if i<=nmpc.N
-            control_output = [output.u(i)];
-            stage_cost(i,:) = 0.5*[state_output, control_output]*input.W.*[state_output, control_output];
-        else
-            stage_cost(i,:) = [0.5 * state_output * input.WN .* state_output, 0];
-        end
-    end
-    if 1  % Plotting Cost
-        figure(3)
-        % set(gcf, 'Position', [1 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
-        subplot(4,1,1); 
-        stairs(stage_cost(:,1));
-        grid on; 
-        title('Tracking Cost');
-        xlim([0,nmpc.N+1])
-        subplot(4,1,2); 
-        stairs(stage_cost(:,2));
-        grid on; 
-        title('Power Cost');
-        xlim([0,nmpc.N+1])
-        subplot(4,1,3); 
-        stairs(stage_cost(:,3));
-        grid on; 
-        title('Control Cost');
-        xlim([0,nmpc.N+1])
-        subplot(4,1,4); 
-        stairs(sum(stage_cost,2));
-        grid on; 
-        title('Total Cost');
-        xlim([0,nmpc.N+1])
-    end
-    stage_cost
-    step_cost = sum(stage_cost,1);
-end
-
 function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc)
     % plots current trajectory
     
     % Data to draw reference circle
-    theta_ref = circle_elevation+circle_angle*sqrt(nmpc.p.r/r)*sin([0:0.01*pi:2*pi]);
-    psi_ref = circle_azimut+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
+    theta_ref = circle_elevation+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
+    %psi_ref = circle_azimut+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
+    pre_psi_ref = acos((cos(circle_angle*sqrt(nmpc.p.r/r))-sin(circle_elevation)*sin(theta_ref))./(cos(circle_elevation)*cos(theta_ref)));
+    psi_ref = [pre_psi_ref(1:100)+circle_azimut, -pre_psi_ref(101:201)+circle_azimut];
 
     x_ref = r*cos(psi_ref).*cos(theta_ref);
     y_ref = r*sin(psi_ref).*cos(theta_ref);
@@ -379,4 +329,101 @@ function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
     title('V tangetial [m/s]');
     xlim([0,nmpc.N+1])
 
+end
+
+
+function step_cost = CalculateCost(output,input,nmpc)
+% state_output = [...
+%     (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
+%     sqrt((10*power_optimum - ( power_actual  + 0.0 * power_potential ))/power_optimum ) * weight_power...
+%     ];
+% control_output = [dphi, phi_slack, theta_slack];
+% end_output = [sqrt( (10*energy_optimum - 1.0*energy_potential)/power_optimum) * weight_power ];
+% 
+    stage_cost = zeros(nmpc.N+1,length(input.W));
+    for i=1:nmpc.N+1
+        % Intermediate States
+        psi   = output.x(i,nmpc.x.index.psi);
+        theta = output.x(i,nmpc.x.index.theta);
+        phi   = output.x(i,nmpc.x.index.phi);
+        
+        circle_azimut    = input.od(i,nmpc.p.index.circle_azimut);
+        circle_elevation = input.od(i,nmpc.p.index.circle_elevation);
+        circle_angle     = input.od(i,nmpc.p.index.circle_angle);
+        weight_tracking  = input.od(i,nmpc.p.index.weight_tracking);
+        weight_power     = input.od(i,nmpc.p.index.weight_power);
+        clA              = input.od(i,nmpc.p.index.clA);
+        cdA              = input.od(i,nmpc.p.index.cdA);
+        vw               = input.od(i,nmpc.p.index.vw);
+        r                = input.od(i,nmpc.p.index.r);
+        r_dot            = input.od(i,nmpc.p.index.r_dot);
+        m                = input.od(i,nmpc.p.index.m);
+        g = 9.81;
+        
+        spsi   = sin(output.x(i,nmpc.x.index.psi));
+        cpsi   = cos(output.x(i,nmpc.x.index.psi));
+        stheta = sin(output.x(i,nmpc.x.index.theta));
+        ctheta = cos(output.x(i,nmpc.x.index.theta));
+        sgamma = sin(output.x(i,nmpc.x.index.gamma));
+        cgamma = cos(output.x(i,nmpc.x.index.gamma));
+        vt     = output.x(i,nmpc.x.index.vt);
+
+        % Rotation Matrix from Sphere Local Plane body axis x',y',z' to x,y,z
+        R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta 0 -stheta]*[cgamma -sgamma 0 ; sgamma cgamma 0 ; 0 0 1];
+
+        vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
+
+        vw_local = R_mat'*vw_xyz;
+        v_local = [output.x(i,nmpc.x.index.vt) ; 0 ; -nmpc.p.r_dot] - vw_local;
+        v = sqrt(v_local'*v_local);
+        epsilon = asin(v_local(3)/v);
+        % beta = atan(v_local(2)/vt);
+
+        power_optimum    = clA * (clA/cdA*(vw*2/3))^2*vw/3;
+        power_actual     = (clA*cos(phi)*cos(epsilon) + cdA*sin(epsilon))*v^2*r_dot;
+        power_potential  = m*g*vt*cgamma*ctheta;
+        energy_optimum   = m*g*r + 0.5*m*clA/cdA*(vw)^2;
+        energy_potential = m*g*r*stheta + 0.5*m*vt^2;
+        
+        
+        state_output = [...
+        (sqrt((psi-circle_azimut)*(psi-circle_azimut)+(theta-circle_elevation)*(theta-circle_elevation))-circle_angle) * weight_tracking...
+        sqrt((10*power_optimum - ( power_actual  + 0.0 * power_potential ))/power_optimum ) * weight_power...
+        ];
+        end_output = [sqrt( (10*energy_optimum - 1.0*energy_potential)/power_optimum) * weight_power ];
+
+        % state_output
+        if i<=nmpc.N
+            control_output = [output.u(i,1),output.u(i,2),output.u(i,3)];
+            stage_cost(i,:) = 0.5*[state_output, control_output]*input.W.*[state_output, control_output];
+        else
+            stage_cost(i,:) = [0.5 * [state_output, end_output] * input.WN .* [state_output, end_output], zeros(1,length(input.W)-length(input.WN))];
+        end
+    end
+    if 1  % Plotting Cost
+        figure(3)
+        % set(gcf, 'Position', [1 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
+        subplot(4,1,1); 
+        stairs(stage_cost(:,1));
+        grid on; 
+        title('Tracking Cost');
+        xlim([0,nmpc.N+1])
+        subplot(4,1,2); 
+        stairs(stage_cost(:,2));
+        grid on; 
+        title('Power Cost');
+        xlim([0,nmpc.N+1])
+        subplot(4,1,3); 
+        stairs(stage_cost(:,3));
+        grid on; 
+        title('Control Cost');
+        xlim([0,nmpc.N+1])
+        subplot(4,1,4); 
+        stairs(sum(stage_cost,2));
+        grid on; 
+        title('Total Cost');
+        xlim([0,nmpc.N+1])
+    end
+    stage_cost
+    step_cost = sum(stage_cost,1);
 end

@@ -60,6 +60,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     DifferentialState vt;
     DifferentialState phi_des;
     Control dphi;
+    Control phi_slack;
+    Control theta_slack;
     OnlineData vw; 
     OnlineData r; 
     OnlineData r_dot; 
@@ -74,22 +76,29 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     BMatrix acadodata_M1;
     acadodata_M1.read( "awe_mpc_data_acadodata_M1.txt" );
     Function acadodata_f2;
-    acadodata_f2 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*weight_tracking;
+    acadodata_f2 << (acos((cos(circle_azimut)*cos(circle_elevation)*cos(psi)*cos(theta)+cos(circle_elevation)*cos(theta)*sin(circle_azimut)*sin(psi)+sin(circle_elevation)*sin(theta)))-circle_angle)*weight_tracking;
     acadodata_f2 << sqrt((-(cdA*sin(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))+clA*cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi))*r_dot*pow(sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot))),2.00000000000000000000e+00)+1.00000000000000000000e+01/3.00000000000000000000e+00*clA*pow(2.00000000000000000000e+00/3.00000000000000000000e+00/cdA*clA*vw,2.00000000000000000000e+00)*vw)*3.00000000000000000000e+00/clA/pow(2.00000000000000000000e+00/3.00000000000000000000e+00/cdA*clA*vw,2.00000000000000000000e+00)/vw)*weight_power;
     acadodata_f2 << dphi;
+    acadodata_f2 << phi_slack;
+    acadodata_f2 << theta_slack;
     BMatrix acadodata_M2;
     acadodata_M2.read( "awe_mpc_data_acadodata_M2.txt" );
     Function acadodata_f3;
-    acadodata_f3 << (-circle_angle+sqrt(((-circle_azimut+psi)*(-circle_azimut+psi)+(-circle_elevation+theta)*(-circle_elevation+theta))))*weight_tracking;
+    acadodata_f3 << (acos((cos(circle_azimut)*cos(circle_elevation)*cos(psi)*cos(theta)+cos(circle_elevation)*cos(theta)*sin(circle_azimut)*sin(psi)+sin(circle_elevation)*sin(theta)))-circle_angle)*weight_tracking;
     acadodata_f3 << sqrt((-(cdA*sin(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))+clA*cos(asin((-(-cos(theta))*cos(psi)*vw-r_dot)/sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot)))))*cos(phi))*r_dot*pow(sqrt(((-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)*(-((-sin(gamma))*(-sin(theta))*cos(psi)+(-sin(psi))*cos(gamma))*vw)+(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)*(-((-sin(psi))*sin(gamma)+(-sin(theta))*cos(psi)*cos(gamma))*vw+vt)+(-(-cos(theta))*cos(psi)*vw-r_dot)*(-(-cos(theta))*cos(psi)*vw-r_dot))),2.00000000000000000000e+00)+1.00000000000000000000e+01/3.00000000000000000000e+00*clA*pow(2.00000000000000000000e+00/3.00000000000000000000e+00/cdA*clA*vw,2.00000000000000000000e+00)*vw)*3.00000000000000000000e+00/clA/pow(2.00000000000000000000e+00/3.00000000000000000000e+00/cdA*clA*vw,2.00000000000000000000e+00)/vw)*weight_power;
     acadodata_f3 << sqrt((-(5.00000000000000000000e-01*m*pow(vt,2.00000000000000000000e+00)+9.81000000000000049738e+00*m*r*sin(theta))+(5.00000000000000000000e-01/cdA*clA*m*pow(vw,2.00000000000000000000e+00)+9.81000000000000049738e+00*m*r)*1.00000000000000000000e+01)*3.00000000000000000000e+00/clA/pow(2.00000000000000000000e+00/3.00000000000000000000e+00/cdA*clA*vw,2.00000000000000000000e+00)/vw)*weight_power;
     OCP ocp1(0, 8, 80);
     ocp1.minimizeLSQ(acadodata_M1, acadodata_f2);
     ocp1.minimizeLSQEndTerm(acadodata_M2, acadodata_f3);
-    ocp1.subjectTo((-8.72664625997164766780e-01) <= phi <= 8.72664625997164766780e-01);
-    ocp1.subjectTo((-1.74532925199432953356e+00) <= dphi <= 1.74532925199432953356e+00);
-    ocp1.subjectTo((-1.22173047639603060688e+00) <= theta <= 1.22173047639603060688e+00);
-    ocp1.subjectTo(1.00000000000000000000e+01 <= vt <= 2.00000000000000000000e+02);
+    ocp1.subjectTo((-1.39626340159546358244e+00) <= dphi <= 1.39626340159546358244e+00);
+    ocp1.subjectTo(6.98131700797731791219e-01 >= (phi-phi_slack));
+    ocp1.subjectTo((-6.98131700797731791219e-01) <= (phi+phi_slack));
+    ocp1.subjectTo(1.22173047639603060688e+00 >= (theta-theta_slack));
+    ocp1.subjectTo(1.74532925199432947805e-01 <= (theta+theta_slack));
+    ocp1.subjectTo((-1.48352986419518018124e+00) <= theta <= 1.48352986419518018124e+00);
+    ocp1.subjectTo(1.00000000000000000000e+01 <= vt);
+    ocp1.subjectTo(0.00000000000000000000e+00 <= phi_slack);
+    ocp1.subjectTo(0.00000000000000000000e+00 <= theta_slack);
     DifferentialEquation acadodata_f1;
     acadodata_f1 << dot(psi) == 1/cos(theta)/r*sin(gamma)*vt;
     acadodata_f1 << dot(theta) == cos(gamma)/r*vt;
@@ -101,7 +110,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     ocp1.setModel( acadodata_f1 );
 
 
-    ocp1.setNU( 1 );
+    ocp1.setNU( 3 );
     ocp1.setNP( 0 );
     ocp1.setNOD( 11 );
     OCPexport ExportModule1( ocp1 );
