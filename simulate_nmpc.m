@@ -65,6 +65,7 @@ input.od(:,nmpc.p.index.m)                  = repmat(nmpc.p.m,N+1,1);
 input.od(:,nmpc.p.index.clA)                = repmat(nmpc.p.clA,N+1,1);
 input.od(:,nmpc.p.index.cdA)                = repmat(nmpc.p.cdA,N+1,1);
 input.od(:,nmpc.p.index.phi_freq)           = repmat(nmpc.p.phi_freq,N+1,1);
+input.od(:,nmpc.p.index.wind_azimut)        = repmat(nmpc.p.wind_azimut,N+1,1);
 input.od(:,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,N+1,1);
 % input.od(end-4:end,nmpc.p.index.weight_tracking)    = input.od(end-4:end,nmpc.p.index.weight_tracking).*[2 4 6 8 10]';
 input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*5

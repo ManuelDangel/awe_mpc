@@ -22,7 +22,7 @@ DifferentialState psi theta gamma phi vt phi_des
 Control dphi phi_slack theta_slack
 
 % OnlineData vt r circle_azimut circle_elevation init
-OnlineData vw r r_dot circle_azimut circle_elevation circle_angle m clA cdA phi_freq weight_tracking weight_power
+OnlineData vw r r_dot circle_azimut circle_elevation circle_angle m clA cdA phi_freq wind_azimut weight_tracking weight_power
 
 
 % Parameters (aircraft)
@@ -39,7 +39,7 @@ cgamma = cos(gamma);
 % Rotation Matrix from Sphere Local Plane body axis x',y',z' to x,y,z
 R_mat = [cpsi -spsi 0 ; spsi cpsi 0 ; 0 0 1]*[-stheta 0 -ctheta ; 0 1 0 ; ctheta 0 -stheta]*[cgamma -sgamma 0 ; sgamma cgamma 0 ; 0 0 1];
 
-vw_xyz = [vw;0;0];  % wind velocity in xyz coordinates
+vw_xyz = [vw*cos(wind_azimut);vw*sin(wind_azimut);0];  % wind velocity in xyz coordinates
 
 vw_local = R_mat'*vw_xyz;
 v_local = [vt ; 0 ; -r_dot] - vw_local;
