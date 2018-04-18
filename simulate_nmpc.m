@@ -8,8 +8,13 @@ nmpc = nmpc_init();
 N=nmpc.N;
 Ts=nmpc.Ts;
 
-T_Simulation  = 10;
+% Set Simulation Time
+T_Simulation  = 20;
 stepwise_init = 1;
+
+% Used to export Pictures:
+export_pics = 1;
+pic_n = 0;
 
 % OnlineData (Parameters)
 vw                  = nmpc.p.vw;
@@ -30,7 +35,7 @@ end
 % X0 = [-pi/2+0.3 ,circle_angle+circle_elevation+0.1 ,pi/4 ,0.0, 20 ];
 X0 = zeros(1,nmpc.x.n);
 X0(nmpc.x.index.psi)    = circle_azimut;
-X0(nmpc.x.index.theta)  = circle_angle+circle_elevation+0.01;
+X0(nmpc.x.index.theta)  = circle_angle+circle_elevation+0.2;
 X0(nmpc.x.index.gamma)  = -pi/2;
 X0(nmpc.x.index.phi)    = 0;
 X0(nmpc.x.index.vt)     = 50;
@@ -125,7 +130,10 @@ for i=1:N+20
     input.x = output.x;
     input.u = output.u;
     
-    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc);  % plot current trajectory
+    if export_pics
+        pic_n = pic_n+1;
+    end
+    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
     
     kktValue = [kktValue output.info.kktValue];
     objValue = [objValue output.info.objValue];
@@ -143,8 +151,8 @@ end
 %% Run Simulation
 
 % % Cost Weighting for Power optimization
-input.W = diag([100 20 1 100 200]);
-input.WN = diag([100 0 20]);
+input.W = diag([100 10*0 1 100 200]);
+input.WN = diag([100 0 10*0]);
 % input.od(end-4:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,5,1).*[2 4 6 8 10]';
 % input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1).*[1 2 3 4 5 6 7 8 9 10]';
 input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*5
@@ -157,6 +165,11 @@ cost = [];
 
 cputime=[];
 for t=0:Ts:T_Simulation  % Simulation
+    
+    if t==10
+        input.W = diag([100 10 1 100 200]);
+        input.WN = diag([100 0 10]);
+    end
     
     % Set the power cost only for 1 full circle and not for more
 %     for i=nmpc.N+1:-1:1
@@ -195,13 +208,17 @@ for t=0:Ts:T_Simulation  % Simulation
     input.u(end,:) = output.u(end,:);
     
     % Wrap Heading Angle Horizon 
-if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) < -pi
-    input.x(:,nmpc.x.index.gamma) = input.x(:,nmpc.x.index.gamma) - 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
-end
-if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) > pi
-    input.x(:,nmpc.x.index.gamma) = input.x(:,nmpc.x.index.gamma) + 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
-end
-    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc);  % plot current trajectory
+    if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) < -pi
+        input.x(:,nmpc.x.index.gamma) = input.x(:,nmpc.x.index.gamma) - 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
+    end
+    if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) > pi
+        input.x(:,nmpc.x.index.gamma) = input.x(:,nmpc.x.index.gamma) + 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
+    end
+    
+    if export_pics
+        pic_n = pic_n+1;
+    end
+    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
     
     % Propagate Tether Length
     r = r + Ts * r_dot;
@@ -268,7 +285,7 @@ disp(['Max  Computation Time: ',num2str(max(cputime))])
 disp(['Min  Computation Time: ',num2str(min(cputime))])
 disp('------------------------------------')
 
-function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc)
+function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n)
     % plots current trajectory
     
     % Data to draw reference circle
@@ -296,38 +313,48 @@ function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
     clf
     % set(gcf, 'Position', [screensize(3)*0.5 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
     surf(r*x_sphere,r*y_sphere,r*z_sphere,'FaceAlpha',0.5,'FaceColor','interp')
-    % plot(cos([0:0.01*pi:2*pi])*circle_angle,sin([0:0.01*pi:2*pi])*circle_angle,'r')
     hold on
-    % plot(output.x(:,1),output.x(:,2),'b')
-    % plot(output.x(1,1),output.x(1,2),'o')
     plot3(x_ref,y_ref,z_ref,'r');
     plot3(x_pos,y_pos,z_pos,'b');
     plot3(x_pos(1),y_pos(1),z_pos(1),'o');
-    %trajectory_MFILE(x_pos,y_pos,z_pos,zeros(size(x_pos)),zeros(size(x_pos)),zeros(size(x_pos)),1,0)
-    %trajectory_MFILE(x_pos(1),y_pos(1),z_pos(1),0,0,0,1,0)
     axis equal
+    title('AWE NMPC Prediction Horizon')
     xlabel('x [m]')
     ylabel('y [m]')
     zlabel('z [m]')
     view(60,30)  % Azimut, Elevation of viewpoint
+    
+    if pic_n
+        saveas(gcf,strcat('../picture_export/sphere_',num2str(pic_n),'.jpg'))
+    end
     
     figure(2)
     % set(gcf, 'Position', [1 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
     subplot(3,1,1); 
     stairs(output.u(:,nmpc.u.index.dphi)*180/pi);
     grid on; 
-    title('Roll Rate [°/s]');
+    title('Roll Rate (control)');
+    xlabel('Prediction Horizon Step')
+    ylabel('Roll Rate [°/s]')
     xlim([0,nmpc.N+1])
     subplot(3,1,2); 
     stairs(output.x(:,nmpc.x.index.phi)*180/pi);
     grid on; 
-    title('Roll Angle [°]');
+    title('Roll Angle (state)');
+    xlabel('Prediction Horizon Step')
+    ylabel('Roll Angle [°]');
     xlim([0,nmpc.N+1])
     subplot(3,1,3); 
     stairs(output.x(:,nmpc.x.index.vt));
     grid on; 
-    title('V tangetial [m/s]');
+    title('V tangetial (state)');
+    xlabel('Prediction Horizon Step')
+    ylabel('V tangetial [m/s]');
     xlim([0,nmpc.N+1])
+    
+    if pic_n
+        saveas(gcf,strcat('../picture_export/prediction_',num2str(pic_n),'.jpg'))
+    end
 
 end
 
@@ -400,7 +427,7 @@ function step_cost = CalculateCost(output,input,nmpc)
             stage_cost(i,:) = [0.5 * [state_output, end_output] * input.WN .* [state_output, end_output], zeros(1,length(input.W)-length(input.WN))];
         end
     end
-    if 1  % Plotting Cost
+    if 0  % Plotting Cost
         figure(3)
         % set(gcf, 'Position', [1 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
         subplot(4,1,1); 
@@ -424,6 +451,6 @@ function step_cost = CalculateCost(output,input,nmpc)
         title('Total Cost');
         xlim([0,nmpc.N+1])
     end
-    stage_cost
+    % stage_cost
     step_cost = sum(stage_cost,1);
 end

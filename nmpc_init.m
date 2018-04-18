@@ -48,7 +48,7 @@ nmpc.p.m                        = 27.53;
 nmpc.p.clA                      = 0.9;
 nmpc.p.cdA                      = 0.07;
 nmpc.p.weight_tracking          = 1;
-nmpc.p.weight_power             = 1;
+nmpc.p.weight_power             = 0;
 
 
 end

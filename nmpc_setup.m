@@ -78,10 +78,10 @@ ocp.subjectTo(  0              <= theta_slack             ); % Bounds on Slack
 
 % Cost Function
 power_optimum    = clA * (clA/cdA*(vw*2/3))^2*vw/3;
-power_actual     = (clA*cos(phi)*cos(epsilon) + cdA*sin(epsilon))*v^2*r_dot
-power_potential  = m*g*vt*cgamma*ctheta
-energy_optimum   = m*g*r + 0.5*m*clA/cdA*(vw)^2
-energy_potential = m*g*r*stheta + 0.5*m*vt^2
+power_actual     = (clA*cos(phi)*cos(epsilon) + cdA*sin(epsilon))*v^2*r_dot;
+power_potential  = m*g*vt*cgamma*ctheta;
+energy_optimum   = m*g*r + 0.5*m*clA/cdA*(vw)^2; % MISTAKE!!!
+energy_potential = m*g*r*stheta + 0.5*m*vt^2;
 xyz_center   = [cos(circle_elevation)*cos(circle_azimut), cos(circle_elevation)*sin(circle_azimut), sin(circle_elevation)];
 xyz_position = [ctheta*cpsi, ctheta*spsi, stheta];
 angle_from_center = acos(xyz_center*xyz_position');
@@ -101,7 +101,7 @@ QN = acado.BMatrix(QN_mat);
 ocp.minimizeLSQEndTerm( QN, [state_output end_output] );
 
 % Setup Solver
-mpc = acado.OCPexport(ocp)
+mpc = acado.OCPexport(ocp);
 
 mpc.set( 'HESSIAN_APPROXIMATION',       'GAUSS_NEWTON'      );
 mpc.set( 'DISCRETIZATION_TYPE',         'MULTIPLE_SHOOTING' );
