@@ -3,9 +3,9 @@ function nmpc = nmpc_init()
 
 % global nmpc  % nmpc is made global for use in simulation
 
-nmpc.N  = 80;        % Horizon Length
+nmpc.N  = 40;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time
-nmpc.flip = false    % Flip coordinate System
+nmpc.flip = true     % Flip coordinate System
 
 nmpc.x.n = 6;        % State size
 nmpc.u.n = 3;        % Input size
@@ -55,9 +55,9 @@ nmpc.p.phi_freq                 = 2.7;
 nmpc.p.wind_azimut              = 0;
 nmpc.p.thrust_power             = 0;
 nmpc.p.weight_tracking          = 1;
-nmpc.p.weight_power             = 1;
+nmpc.p.weight_power             = 0;
 
-if false  % set this if nmpc.flip
+if true  % set this if nmpc.flip
     nmpc.p.vw                       = 0;
     nmpc.p.r_dot                    = 0;
     nmpc.p.circle_azimut            = 90/180*pi;

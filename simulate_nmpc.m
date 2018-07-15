@@ -17,8 +17,8 @@ export_pics = 0;
 pic_n = 0;
 
 % settings to activate plots
-plot_cost  = true;
-plot_final = true;
+plot_cost  = false;
+plot_final = false;
 
 % OnlineData (Parameters)
 vw                  = nmpc.p.vw;
@@ -161,7 +161,7 @@ cost = [];
 cputime=[];
 for t=0:Ts:T_Simulation  % Simulation
     
-    if t==10  % Switch on power objective after 10 s
+    if false  % Switch on power objective after 10 s
         input.W = diag([100 10 1 100 200]);
         input.WN = diag([100 0 10]);
         disp('++ Activated Power Objective ++')
