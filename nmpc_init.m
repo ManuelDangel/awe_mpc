@@ -3,7 +3,7 @@ function nmpc = nmpc_init()
 
 % global nmpc  % nmpc is made global for use in simulation
 
-nmpc.N  = 40;        % Horizon Length
+nmpc.N  = 80;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time
 
 nmpc.x.n = 6;        % State size

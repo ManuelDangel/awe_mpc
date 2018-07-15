@@ -35,7 +35,7 @@ end
 % X0 = [-pi/2+0.3 ,circle_angle+circle_elevation+0.1 ,pi/4 ,0.0, 20 ];
 X0 = zeros(1,nmpc.x.n);
 X0(nmpc.x.index.psi)    = circle_azimut;
-X0(nmpc.x.index.theta)  = circle_angle+circle_elevation+0.2;
+X0(nmpc.x.index.theta)  = circle_angle+circle_elevation+0.1;
 X0(nmpc.x.index.gamma)  = -pi/2;
 X0(nmpc.x.index.phi)    = 0;
 X0(nmpc.x.index.vt)     = 50;
