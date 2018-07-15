@@ -115,9 +115,9 @@ for i=1:N+20
             repmat(nmpc.p.weight_tracking,min((i+1)*init_step,N+1)-min(i*init_step+1,N+1)+1,1);
     end
     
-    % Set Thrust (full at vt<=20 none at vt>=30)
-    input.od(:,nmpc.p.index.thrust_power)       = nmpc.p.thrust_power*min(1,max(0,(30-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
-
+    % Set Thrust (full at vt<=12 none at vt>=22)
+    input.od(:,nmpc.p.index.thrust_power) = ...
+        nmpc.p.thrust_power*min(1,max(0,(22-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
 
     tic
     output = awe_MPCstep(input); % Solve NMPC
