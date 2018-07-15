@@ -44,7 +44,7 @@ nmpc.p.vw                       = 10;
 nmpc.p.r                        = 220;
 nmpc.p.r_dot                    = 10*0.23;
 nmpc.p.circle_azimut            = 0;
-nmpc.p.circle_elevation         = 30/180*pi;
+nmpc.p.circle_elevation         = 25/180*pi;
 nmpc.p.circle_angle             = sqrt(27.53/0.9)*sqrt(1/220); % use sqrt(m/cla)*sqrt(1/r) as best guess %atan(75/220);%atan(85/220);
 nmpc.p.m                        = 27.53;
 nmpc.p.clA                      = 0.9;
@@ -52,7 +52,7 @@ nmpc.p.cdA                      = 0.07;
 nmpc.p.phi_freq                 = 2.7;
 nmpc.p.wind_azimut              = 0;
 nmpc.p.weight_tracking          = 1;
-nmpc.p.weight_power             = 0;
+nmpc.p.weight_power             = 1;
 
 
 end

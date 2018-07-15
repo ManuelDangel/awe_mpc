@@ -9,12 +9,14 @@ N=nmpc.N;
 Ts=nmpc.Ts;
 
 % Set Simulation Time
-T_Simulation  = 10;
+T_Simulation  = 50;
 stepwise_init = 1;
 
 % Used to export Pictures:
 export_pics = 0;
 pic_n = 0;
+
+pos_history = [];
 
 % OnlineData (Parameters)
 vw                  = nmpc.p.vw;
@@ -135,7 +137,7 @@ for i=1:N+20
     if export_pics
         pic_n = pic_n+1;
     end
-    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
+    %PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
     
     kktValue = [kktValue output.info.kktValue];
     objValue = [objValue output.info.objValue];
@@ -153,8 +155,8 @@ end
 %% Run Simulation
 
 % % Cost Weighting for Power optimization
-input.W = diag([100 10*0 1 100 200]);
-input.WN = diag([100 0 10*0]);
+input.W = diag([100 20 1 100 200]);
+input.WN = diag([100 0 20]);
 % input.od(end-4:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,5,1).*[2 4 6 8 10]';
 % input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1).*[1 2 3 4 5 6 7 8 9 10]';
 input.od(end-9:end,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,10,1)*5
@@ -168,10 +170,10 @@ cost = [];
 cputime=[];
 for t=0:Ts:T_Simulation  % Simulation
     
-    if t==10
-        input.W = diag([100 10 1 100 200]);
-        input.WN = diag([100 0 10]);
-    end
+%     if t==10
+%         input.W = diag([100 10 1 100 200]);
+%         input.WN = diag([100 0 10]);
+%     end
     
     % Set the power cost only for 1 full circle and not for more
 %     for i=nmpc.N+1:-1:1
@@ -220,7 +222,11 @@ for t=0:Ts:T_Simulation  % Simulation
     if export_pics
         pic_n = pic_n+1;
     end
-    PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
+    %PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
+    x_pos = r*cos(output.x(1,nmpc.x.index.psi)).*cos(output.x(1,nmpc.x.index.theta));
+    y_pos = r*sin(output.x(1,nmpc.x.index.psi)).*cos(output.x(1,nmpc.x.index.theta));
+    z_pos = r*sin(output.x(1,nmpc.x.index.theta));
+    pos_history(:,end+1) = [x_pos;y_pos;z_pos];
     
     % Propagate Tether Length
     r = r + Ts * r_dot;
