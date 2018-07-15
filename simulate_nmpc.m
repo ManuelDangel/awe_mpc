@@ -9,7 +9,7 @@ N=nmpc.N;
 Ts=nmpc.Ts;
 
 % Set Simulation Time
-T_Simulation  = 5;
+T_Simulation  = 20;
 stepwise_init = 1;
 
 % Used to export Pictures:
@@ -42,7 +42,11 @@ X0(nmpc.x.index.gamma)  = -pi/2;
 X0(nmpc.x.index.phi)    = 0;
 X0(nmpc.x.index.vt)     = 50;
 
-
+if nmpc.flip
+    X0(nmpc.x.index.psi)    = circle_azimut+circle_angle+0.2;
+    X0(nmpc.x.index.theta)  = circle_elevation;
+    X0(nmpc.x.index.gamma)  = 0;
+end
 
 
 %% Prepare Simulation
@@ -67,6 +71,7 @@ input.od(:,nmpc.p.index.clA)                = repmat(nmpc.p.clA,N+1,1);
 input.od(:,nmpc.p.index.cdA)                = repmat(nmpc.p.cdA,N+1,1);
 input.od(:,nmpc.p.index.phi_freq)           = repmat(nmpc.p.phi_freq,N+1,1);
 input.od(:,nmpc.p.index.wind_azimut)        = repmat(nmpc.p.wind_azimut,N+1,1);
+input.od(:,nmpc.p.index.thrust_power)       = repmat(nmpc.p.thrust_power,N+1,1);
 input.od(:,nmpc.p.index.weight_tracking)    = repmat(nmpc.p.weight_tracking,N+1,1);
 input.od(end-9:end,nmpc.p.index.weight_tracking) = ...
     repmat(nmpc.p.weight_tracking,10,1)*5;  % increased weight on final stages
@@ -109,6 +114,10 @@ for i=1:N+20
         input.od(min(i*init_step+1,N+1):min((i+1)*init_step,N+1),nmpc.p.index.weight_tracking) = ...
             repmat(nmpc.p.weight_tracking,min((i+1)*init_step,N+1)-min(i*init_step+1,N+1)+1,1);
     end
+    
+    % Set Thrust (full at vt<=20 none at vt>=30)
+    input.od(:,nmpc.p.index.thrust_power)       = nmpc.p.thrust_power*min(1,max(0,(30-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
+
 
     tic
     output = awe_MPCstep(input); % Solve NMPC
@@ -158,6 +167,10 @@ for t=0:Ts:T_Simulation  % Simulation
         disp('++ Activated Power Objective ++')
     end
     
+    % Set Thrust (full at vt<=12 none at vt>=22)
+    input.od(:,nmpc.p.index.thrust_power) = ...
+        nmpc.p.thrust_power*min(1,max(0,(22-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
+
     tic
     output = awe_MPCstep(input); % Solve NMPC
     toc
@@ -218,9 +231,6 @@ end
 if plot_final
     figure(5)  % Plot Solver Prediction Variation
     set(gcf, 'Position',get(0,'Screensize'));
-    % screensize=get(0,'Screensize');
-    % set(gcf, 'Position', [screensize(3)*0.5 screensize(4)*0.3 screensize(3)*0.5 screensize(4)*0.7]);
-    % boxplot(sqrt(delta_opt(10:end,:,1).^2+delta_opt(10:end,:,2).^2))
     subplot(2,2,1)
     boxplot(sqrt(delta_opt(10:end,1:end-1,1).^2+delta_opt(10:end,1:end-1,2).^2))
     grid on
@@ -273,18 +283,30 @@ function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
         ./(cos(circle_elevation)*cos(theta_ref)));
     psi_ref = [pre_psi_ref(1:100)+circle_azimut, -pre_psi_ref(101:201)+circle_azimut];
 
-    x_ref = r*cos(psi_ref).*cos(theta_ref);
-    y_ref = real(r*sin(psi_ref).*cos(theta_ref));
-    z_ref = r*sin(theta_ref);
-    
+    if nmpc.flip
+        x_ref = r*cos(psi_ref).*cos(theta_ref);
+        y_ref = -r*sin(theta_ref);
+        z_ref = real(r*sin(psi_ref).*cos(theta_ref));
+    else
+        x_ref = r*cos(psi_ref).*cos(theta_ref);
+        y_ref = real(r*sin(psi_ref).*cos(theta_ref));
+        z_ref = r*sin(theta_ref);
+    end
+
     r_traj = zeros(nmpc.N+1,1);
     for i=1:nmpc.N+1  % Calculate the expanding trajectory r
         r_traj(i) = r + (i-1)*nmpc.Ts*r_dot;
     end
 
-    x_pos = r_traj.*cos(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
-    y_pos = r_traj.*sin(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
-    z_pos = r_traj.*sin(output.x(:,nmpc.x.index.theta));
+    if nmpc.flip
+        x_pos = r_traj.*cos(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
+        y_pos = -r_traj.*sin(output.x(:,nmpc.x.index.theta));
+        z_pos = r_traj.*sin(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
+    else
+        x_pos = r_traj.*cos(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
+        y_pos = r_traj.*sin(output.x(:,nmpc.x.index.psi)).*cos(output.x(:,nmpc.x.index.theta));
+        z_pos = r_traj.*sin(output.x(:,nmpc.x.index.theta));
+    end
     
     screensize=get(0,'Screensize');
     

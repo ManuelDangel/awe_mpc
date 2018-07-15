@@ -64,7 +64,7 @@ extern "C"
 /** Number of control/estimation intervals. */
 #define ACADO_N 80
 /** Number of online data values. */
-#define ACADO_NOD 13
+#define ACADO_NOD 14
 /** Number of path constraints. */
 #define ACADO_NPAC 4
 /** Number of control variables. */
@@ -116,11 +116,11 @@ real_t x[ 486 ];
  */
 real_t u[ 240 ];
 
-/** Matrix of size: 81 x 13 (row major format)
+/** Matrix of size: 81 x 14 (row major format)
  * 
  *  Matrix containing 81 online data vectors.
  */
-real_t od[ 1053 ];
+real_t od[ 1134 ];
 
 /** Column vector of size: 400
  * 
@@ -167,8 +167,8 @@ real_t rhs_aux[ 874 ];
 
 real_t rk_ttt;
 
-/** Row vector of size: 22 */
-real_t rk_xxx[ 22 ];
+/** Row vector of size: 23 */
+real_t rk_xxx[ 23 ];
 
 /** Matrix of size: 6 x 2 (row major format) */
 real_t rk_kkk[ 12 ];
@@ -194,8 +194,8 @@ real_t rk_diffK[ 12 ];
 /** Matrix of size: 6 x 9 (row major format) */
 real_t rk_diffsNew2[ 54 ];
 
-/** Row vector of size: 76 */
-real_t state[ 76 ];
+/** Row vector of size: 77 */
+real_t state[ 77 ];
 
 /** Column vector of size: 480 */
 real_t d[ 480 ];
@@ -212,11 +212,11 @@ real_t evGx[ 2880 ];
 /** Matrix of size: 480 x 3 (row major format) */
 real_t evGu[ 1440 ];
 
-/** Column vector of size: 447 */
-real_t objAuxVar[ 447 ];
+/** Column vector of size: 480 */
+real_t objAuxVar[ 480 ];
 
-/** Row vector of size: 22 */
-real_t objValueIn[ 22 ];
+/** Row vector of size: 23 */
+real_t objValueIn[ 23 ];
 
 /** Row vector of size: 35 */
 real_t objValueOut[ 35 ];
@@ -242,8 +242,8 @@ real_t QN2[ 18 ];
 /** Column vector of size: 36 */
 real_t conAuxVar[ 36 ];
 
-/** Row vector of size: 22 */
-real_t conValueIn[ 22 ];
+/** Row vector of size: 23 */
+real_t conValueIn[ 23 ];
 
 /** Row vector of size: 40 */
 real_t conValueOut[ 40 ];
@@ -324,7 +324,7 @@ real_t y[ 720 ];
 
 /** Performs the integration and sensitivity propagation for one shooting interval.
  *
- *  \param rk_eta Working array of size 22 to pass the input values and return the results.
+ *  \param rk_eta Working array of size 23 to pass the input values and return the results.
  *  \param resetIntegrator The internal memory of the integrator can be reset.
  *
  *  \return Status code of the integrator.

@@ -5,10 +5,11 @@ function nmpc = nmpc_init()
 
 nmpc.N  = 80;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time
+nmpc.flip = false    % Flip coordinate System
 
 nmpc.x.n = 6;        % State size
 nmpc.u.n = 3;        % Input size
-nmpc.p.n = 13;       % Parameter size
+nmpc.p.n = 14;       % Parameter size
 
 
 % Index of states
@@ -36,13 +37,14 @@ nmpc.p.index.clA                = 8;  % Lift coefficient (0.5*rho*A*cl)
 nmpc.p.index.cdA                = 9;  % Drag coefficient (0.5*rho*A*cd)
 nmpc.p.index.phi_freq           =10;  % Roll Frequency (1st order low pass)
 nmpc.p.index.wind_azimut        =11;  % Azimut the wind is blowing towards
-nmpc.p.index.weight_tracking    =12;  % Weight on the tracking cost (changes along Horizon)
-nmpc.p.index.weight_power       =13;  % Weight on the power cost (changes along Horizon)
+nmpc.p.index.thrust_power       =12;  % Power of the thrust produced by a motor on the aircraft
+nmpc.p.index.weight_tracking    =13;  % Weight on the tracking cost (changes along Horizon)
+nmpc.p.index.weight_power       =14;  % Weight on the power cost (changes along Horizon)
 
 % Values of parameters
-nmpc.p.vw                       = 10;
+nmpc.p.vw                       = 10;  % zero wind not supported in power objective
 nmpc.p.r                        = 220;
-nmpc.p.r_dot                    = 10*0.23;
+nmpc.p.r_dot                    = 10*cos(30/180*pi)*1/3;
 nmpc.p.circle_azimut            = 0;
 nmpc.p.circle_elevation         = 30/180*pi;
 nmpc.p.circle_angle             = sqrt(27.53/0.9)*sqrt(1/220); % use sqrt(m/cla)*sqrt(1/r) as best guess %atan(75/220);%atan(85/220);
@@ -51,8 +53,17 @@ nmpc.p.clA                      = 0.9;
 nmpc.p.cdA                      = 0.07;
 nmpc.p.phi_freq                 = 2.7;
 nmpc.p.wind_azimut              = 0;
+nmpc.p.thrust_power             = 0;
 nmpc.p.weight_tracking          = 1;
 nmpc.p.weight_power             = 1;
 
+if false  % set this if nmpc.flip
+    nmpc.p.vw                       = 0;
+    nmpc.p.r_dot                    = 0;
+    nmpc.p.circle_azimut            = 90/180*pi;
+    nmpc.p.circle_elevation         = 0/180*pi;
+    nmpc.p.thrust_power             = 5*680*0.7*0.8;
+    nmpc.p.weight_power             = 0;
+end
 
 end
