@@ -1,7 +1,7 @@
 %% AWE NMPC SIMULATION
 
 % Simulation Setup
-clear functions  % Clears compiled functions like .mex
+clear functions  %#ok<CLFUNC> % Clears compiled functions like .mex
 % important to not get stuck in NaN's for consequtive script runs
 nmpc = nmpc_init();
 
@@ -115,9 +115,9 @@ for i=1:N+20
             repmat(nmpc.p.weight_tracking,min((i+1)*init_step,N+1)-min(i*init_step+1,N+1)+1,1);
     end
     
-    % Set Thrust (full at vt<=20 none at vt>=30)
-    input.od(:,nmpc.p.index.thrust_power)       = nmpc.p.thrust_power*min(1,max(0,(30-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
-
+    % Set Thrust (full at vt<=12 none at vt>=22)
+    input.od(:,nmpc.p.index.thrust_power) = ...
+        nmpc.p.thrust_power*min(1,max(0,(22-input.x(:,nmpc.x.index.vt))*0.1)) ./ input.x(:,nmpc.x.index.vt);
 
     tic
     output = awe_MPCstep(input); % Solve NMPC
@@ -128,7 +128,7 @@ for i=1:N+20
     input.u = output.u;
     
     if export_pics
-        pic_n = pic_n+1;
+        pic_n = pic_n+1; %#ok<UNRCH>
     end
     PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,...
         circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
@@ -194,15 +194,15 @@ for t=0:Ts:T_Simulation  % Simulation
     % Wrap Heading Angle Horizon 
     if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) < -pi
         input.x(:,nmpc.x.index.gamma) = ...
-            input.x(:,nmpc.x.index.gamma) - 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
+            input.x(:,nmpc.x.index.gamma) - 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)));
     end
     if input.x0(nmpc.x.index.gamma)-input.x(1,nmpc.x.index.gamma) > pi
         input.x(:,nmpc.x.index.gamma) = ...
-            input.x(:,nmpc.x.index.gamma) + 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)))
+            input.x(:,nmpc.x.index.gamma) + 2*pi*ones(size(input.x(:,nmpc.x.index.gamma)));
     end
     
     if export_pics
-        pic_n = pic_n+1;
+        pic_n = pic_n+1; %#ok<UNRCH>
     end
     PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elevation,...
         circle_angle,r,r_dot,nmpc,pic_n);  % plot current trajectory
@@ -259,7 +259,7 @@ end
 
 if plot_final
     figure(6)  % Plot Costs at each Timestep
-    plot(repmat([0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts]',1,size(cost,2)),cost)
+    plot(repmat(0:nmpc.Ts:(size(cost,1)-1)*nmpc.Ts',1,size(cost,2)),cost)
     legend('Tracking Cost','Power Cost','Control Cost','Total Cost')
     xlabel('time [s]')
     ylabel('Least Squares Objective Cost [-]')
@@ -277,7 +277,7 @@ function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
     % plots current trajectory
     
     % Data to draw reference circle
-    theta_ref = circle_elevation+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
+    theta_ref = circle_elevation+circle_angle*sqrt(nmpc.p.r/r)*cos(0:0.01*pi:2*pi);
     %psi_ref = circle_azimut+circle_angle*sqrt(nmpc.p.r/r)*cos([0:0.01*pi:2*pi]);
     pre_psi_ref = acos((cos(circle_angle*sqrt(nmpc.p.r/r))-sin(circle_elevation)*sin(theta_ref))...
         ./(cos(circle_elevation)*cos(theta_ref)));
@@ -308,7 +308,7 @@ function PlottingFun(output,x_sphere,y_sphere,z_sphere,circle_azimut,circle_elev
         z_pos = r_traj.*sin(output.x(:,nmpc.x.index.theta));
     end
     
-    screensize=get(0,'Screensize');
+    % screensize=get(0,'Screensize');
     
     figure(1)
     clf
@@ -414,7 +414,7 @@ function step_cost = CalculateCost(output,input,nmpc,plot_cost)
         *(theta-circle_elevation))-circle_angle) * weight_tracking...
         sqrt((10*power_optimum - ( power_actual  + 0.0 * power_potential ))/power_optimum ) * weight_power...
         ];
-        end_output = [sqrt( (10*energy_optimum - 1.0*energy_potential)/power_optimum) * weight_power ];
+        end_output = sqrt( (10*energy_optimum - 1.0*energy_potential)/power_optimum) * weight_power;
 
         % state_output
         if i<=nmpc.N
