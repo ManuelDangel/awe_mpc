@@ -52,7 +52,7 @@ nmpc.p.cdA                      = 0.07;
 nmpc.p.phi_freq                 = 2.7;
 nmpc.p.wind_azimut              = 0;
 nmpc.p.weight_tracking          = 1;
-nmpc.p.weight_power             = 0;
+nmpc.p.weight_power             = 1;
 
 
 end
