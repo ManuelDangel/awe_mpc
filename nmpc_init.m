@@ -1,7 +1,14 @@
-% This file sets up some global nmpc parameters
 function nmpc = nmpc_init()
-
-% global nmpc  % nmpc is made global for use in simulation
+% nmpc_init: This function sets some nmpc parameters
+%
+% Parameter setup of NMPC for Fixed-Wing Airborne Wind Energy
+% It returns a struct "nmpc" which features information about the states,
+% inputs and parameters. This includes the indeces of the order those are
+% stored in Acado.
+%
+% Manuel Dangel, ETH Zurich, 2018
+%
+% Copyright: This is published under BSD licence
 
 nmpc.N  = 40;        % Horizon Length
 nmpc.Ts = 0.1;       % Sample Time

@@ -1,6 +1,12 @@
 %% NMPC SOLVER SETUP
-
-% Setup NMPC Solver using Acado
+% nmpc_setup: This function generates an NMPC solver using Acado
+%
+% Solver setup of NMPC for Fixed-Wing Airborne Wind Energy
+% Generates C code of the RTI-scheme solver.
+%
+% Manuel Dangel, ETH Zurich, 2018
+%
+% Copyright: This is published under BSD licence
 
 clear all
 
