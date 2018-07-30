@@ -1,4 +1,12 @@
 %% AWE NMPC SIMULATION
+% simulate_nmpc: This runs a simple simulation of the generated solver
+%
+% Simulation of NMPC for Fixed-Wing Airborne Wind Energy
+% First initialization phase, second propagation phase
+%
+% Manuel Dangel, ETH Zurich, 2018
+%
+% Copyright: This is published under BSD licence
 
 % Simulation Setup
 clear functions  %#ok<CLFUNC> % Clears compiled functions like .mex
